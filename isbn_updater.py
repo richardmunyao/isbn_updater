@@ -41,7 +41,9 @@ def build_query():
     # query is in this format: http://openlibrary.org/search.json?q=one+hundred+years+of+solitude&limit=1&offset=0
     # to do: https://openlibrary.org/search.json?author=Harper+Lee&title=To+Kill+a+Mockingbird&limit=1&offset=0
     missing = find_missing_isbn()
-    base_url = 'http://openlibrary.org/search.json?q='
+    base_url = 'http://openlibrary.org/search.json?'
+    author_bit = 'author='
+    title_bit = '&title='
     query_limit = '&limit=1&offset=0'  # limit to 1 query result set
     titles = missing['Title'].values
     authors = missing['Author'].values
@@ -53,7 +55,9 @@ def build_query():
     non_bracket_titles = [ title[:title.find('(')].strip() if title.find('(') != -1 else title for title in titles]
     titles_formatted = [title.lower().replace(' ', '+') for title in non_bracket_titles]
     authors_formatted = [author.lower().replace(' ', '+') for author in authors]
-    query_urls = [base_url + title_formatted + query_limit for title_formatted in titles_formatted]
+    query_urls = [base_url + author_bit + author_formatted + title_bit + title_formatted + query_limit for author_formatted, title_formatted in zip(authors_formatted, titles_formatted)]
+    for query in query_urls:
+        print(query)
 
     return query_urls
 
