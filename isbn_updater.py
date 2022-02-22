@@ -44,9 +44,17 @@ def build_query():
     base_url = 'http://openlibrary.org/search.json?q='
     query_limit = '&limit=1&offset=0'  # limit to 1 query result set
     titles = missing['Title'].values
-    titles_formatted = [title.lower().replace(' ', '+') for title in titles]
+    authors = missing['Author'].values
+    # remove info in brackets if it exists.
+    # some titles are in this format: 'Slave to Sensation (Psy-Changeling, #1)'. Change to: 'Slave to Sensation'
+    # Explanation for logic used below:
+    # title.find('(') returns index where bracket starts, -1 if not found. title[:index] returns title up to start of brackets. strip() trailing spaces
+    # List comprehension Logic[NEW_TITLE if CONDITION else TITLE for TITLE in OLDLIST]
+    non_bracket_titles = [ title[:title.find('(')].strip() if title.find('(') != -1 else title for title in titles]
+    titles_formatted = [title.lower().replace(' ', '+') for title in non_bracket_titles]
+    authors_formatted = [author.lower().replace(' ', '+') for author in authors]
     query_urls = [base_url + title_formatted + query_limit for title_formatted in titles_formatted]
-    # Call function to fetch the missing ISBNs
+
     return query_urls
 
 # Get response for each url in query_urls
