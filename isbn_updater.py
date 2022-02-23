@@ -56,8 +56,6 @@ def build_query():
     titles_formatted = [title.lower().replace(' ', '+') for title in non_bracket_titles]
     authors_formatted = [author.lower().replace(' ', '+') for author in authors]
     query_urls = [base_url + author_bit + author_formatted + title_bit + title_formatted + query_limit for author_formatted, title_formatted in zip(authors_formatted, titles_formatted)]
-    for query in query_urls:
-        print(query)
 
     return query_urls
 
@@ -76,12 +74,15 @@ def fetch_isbn():
             response.raise_for_status()
         except requests.exceptions.ConnectionError as err:
             # e.g. DNS failure, refused connection, etc
-            print("Something went wrong with the connection")
+            print(f"Something went wrong with the connection. Did not find: {title}")
+            fetched_isbns[title] = '=""'
             print(err)
             continue
             # raise SystemExit(err)
         except requests.exceptions.HTTPError as err:
             # eg, url, server and other errors
+            print(f"HTTPError. Could not find: {title}")
+            fetched_isbns[title] = '=""'
             print(err)
             continue
             # raise SystemExit(err)
@@ -92,7 +93,7 @@ def fetch_isbn():
             fetched_isbns[title] = isbn
             print(f"{json_response['docs'][0]['title']} ISBN: {isbn}")
         else:
-            print("NOT FOUND: ",json_response['q'])
+            print("NOT FOUND: ",title)
             fetched_isbns[title] = '=""'
 
     return fetched_isbns
