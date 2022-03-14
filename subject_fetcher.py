@@ -14,7 +14,7 @@ import json
 # Because if I couldn't find ISBN data on openlibrary, won't find subject data either
 def not_missing_isbn():
     # import the CSV directly with pandas:
-    csvpath = Path.cwd()/"res/goodreads_export.csv"
+    csvpath = Path.cwd()/"res/goodreads_library_export.csv"
     dataframe = pd.read_csv(csvpath)
     have_isbn = dataframe.loc[dataframe['ISBN'] != '=""']
     titles = have_isbn['Title'].values
@@ -82,12 +82,12 @@ def fetch_subjects():
             print("NOT FOUND: ",isbn)
             fetched_subjects[isbn] = '=""'
 
-    print(fetched_subjects)
+    # print(fetched_subjects)
 
     return fetched_subjects
 
 def update_subjects():
-    csvpath = Path.cwd()/"res/goodreads_export.csv"
+    csvpath = Path.cwd()/"res/goodreads_library_export.csv"
     master_df = pd.read_csv(csvpath)
     # create new column (subjects)
     master_df["Subjects"] = ""
@@ -96,10 +96,14 @@ def update_subjects():
     for isbn, subject in fetched_subjects.items():
         # "Subjects" cell becomes subject where ISBN cell == isbn
         # subject is a list of multiple subjects: lowercase all then turn to a string split by commas
-        subject = [item.lower() for item in subject]
-        master_df.loc[master_df.ISBN == isbn, "Subjects"] = ','.join(subject)
+        subject = [item.strip().lower() for item in subject]
+        # convert to set and back to remove repeated subjects:
+        uniques = set(subject)
+        subject = list(uniques)
+        # join with tilde ~ instead of comma to avoid conflicts. Some description have commas
+        master_df.loc[master_df.ISBN == isbn, "Subjects"] = '~'.join(subject)
         # finally, export dataframe to file
-        output_file = Path.cwd()/"res/goodreads_export_subjects.csv"
+        output_file = Path.cwd()/"res/goodreads_library_export+subjects.csv"
         master_df.to_csv(output_file, encoding='utf-8', index=False)
 
 
